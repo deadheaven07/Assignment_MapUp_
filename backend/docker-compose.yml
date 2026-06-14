@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mapup_db
+      POSTGRES_USER: deadheaven07
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://deadheaven07:${POSTGRES_PASSWORD}@postgres:5432/mapup_db?sslmode=disable
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      PORT: ${PORT:-8080}
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
