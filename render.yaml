@@ -2,6 +2,7 @@ services:
   - type: web
     name: mapup-backend
     runtime: docker
+    rootDirectory: ./backend
     dockerfilePath: ./Dockerfile
     repo: https://github.com/deadheaven07/Assignment_MapUp_
     plan: free
