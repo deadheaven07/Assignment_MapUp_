@@ -12,8 +12,8 @@ services:
           name: mapup-postgres
           property: connectionString
       - key: CORS_ORIGINS
-        value: "*"
-        
+        value: https://assignment-map-up.vercel.app
+
 databases:
   # PostgreSQL Database
   - name: mapup-postgres
