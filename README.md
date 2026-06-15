@@ -325,6 +325,19 @@ docker compose up --build --force-recreate
 
 ---
 
+## 🎥 Demo Videos
+
+### Application Demo
+
+https://www.loom.com/share/3dfc05b0cdaf42309731613d42d2b1d6
+
+### Technical Walkthrough
+
+https://www.loom.com/share/673c183c7a4a43a8ad3bc1eee9ce7d19
+
+
+---
+
 ## 🔮 Future Improvements
 
 * Authentication & Authorization
