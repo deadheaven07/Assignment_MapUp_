@@ -72,6 +72,19 @@ type VehicleGeofenceState struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+type AlertEvent struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	AlertRuleID *uint     `gorm:"index" json:"alert_rule_id"`
+	ViolationID *uint     `gorm:"index" json:"violation_id"`
+	VehicleID   uint      `gorm:"not null;index" json:"vehicle_id"`
+	GeofenceID  uint      `gorm:"not null;index" json:"geofence_id"`
+	EventType   string    `gorm:"not null" json:"event_type"`
+	Latitude    float64   `gorm:"not null" json:"latitude"`
+	Longitude   float64   `gorm:"not null" json:"longitude"`
+	Timestamp   time.Time `gorm:"not null;index" json:"timestamp"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
 const (
 	EventEntry = "entry"
 	EventExit  = "exit"

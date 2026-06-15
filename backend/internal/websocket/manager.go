@@ -12,12 +12,12 @@ import (
 )
 
 type AlertEvent struct {
-	EventID   string          `json:"event_id"`
-	EventType string          `json:"event_type"`
-	Timestamp time.Time       `json:"timestamp"`
-	Vehicle   alertVehicle   `json:"vehicle"`
-	Geofence  alertGeofence  `json:"geofence"`
-	Location  alertLocation  `json:"location"`
+	EventID   string        `json:"event_id"`
+	EventType string        `json:"event_type"`
+	Timestamp time.Time     `json:"timestamp"`
+	Vehicle   alertVehicle  `json:"vehicle"`
+	Geofence  alertGeofence `json:"geofence"`
+	Location  alertLocation `json:"location"`
 }
 
 type alertVehicle struct {
@@ -58,6 +58,10 @@ func NewAlertEvent(eventID uint, eventType string, timestamp time.Time, vehicle 
 
 func publicID(prefix string, id uint) string {
 	return fmt.Sprintf("%s_%d", prefix, id)
+}
+
+type Publisher interface {
+	Publish(AlertEvent)
 }
 
 type Manager struct {

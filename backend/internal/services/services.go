@@ -14,19 +14,19 @@ import (
 )
 
 type Service struct {
-	repo *repositories.Repository
-	ws   *websocket.Manager
+	repo      *repositories.Repository
+	publisher websocket.Publisher
 }
 
-func New(repo *repositories.Repository, ws *websocket.Manager) *Service {
-	return &Service{repo: repo, ws: ws}
+func New(repo *repositories.Repository, publisher websocket.Publisher) *Service {
+	return &Service{repo: repo, publisher: publisher}
 }
 
 type CreateGeofenceInput struct {
-	Name        string     `json:"name" binding:"required"`
-	Description string     `json:"description"`
+	Name        string      `json:"name" binding:"required"`
+	Description string      `json:"description"`
 	Coordinates [][]float64 `json:"coordinates" binding:"required"`
-	Category    string     `json:"category" binding:"required"`
+	Category    string      `json:"category" binding:"required"`
 }
 
 func (s *Service) CreateGeofence(input CreateGeofenceInput) (models.Geofence, error) {
@@ -125,6 +125,40 @@ func (s *Service) UpdateLocation(input LocationInput) (LocationResult, error) {
 			return LocationResult{}, err
 		}
 		if !found {
+			if inside {
+				eventType := models.EventEntry
+				violation := models.Violation{
+					VehicleID:  input.VehicleID,
+					GeofenceID: fence.ID,
+					EventType:  eventType,
+					Latitude:   input.Latitude,
+					Longitude:  input.Longitude,
+					Timestamp:  input.Timestamp,
+				}
+				if err := s.repo.CreateViolation(&violation); err != nil {
+					return LocationResult{}, err
+				}
+				rules, err := s.repo.MatchingRules(input.VehicleID, fence.ID, eventType)
+				if err != nil {
+					return LocationResult{}, err
+				}
+				for _, rule := range rules {
+					event := models.AlertEvent{
+						AlertRuleID: &rule.ID,
+						ViolationID: &violation.ID,
+						VehicleID:   input.VehicleID,
+						GeofenceID:  fence.ID,
+						EventType:   eventType,
+						Latitude:    input.Latitude,
+						Longitude:   input.Longitude,
+						Timestamp:   input.Timestamp,
+					}
+					if err := s.repo.CreateAlertEvent(&event); err != nil {
+						return LocationResult{}, err
+					}
+					s.publisher.Publish(websocket.NewAlertEvent(event.ID, eventType, input.Timestamp, vehicle, fence, location))
+				}
+			}
 			if err := s.repo.UpsertState(input.VehicleID, fence.ID, inside); err != nil {
 				return LocationResult{}, err
 			}
@@ -156,8 +190,21 @@ func (s *Service) UpdateLocation(input LocationInput) (LocationResult, error) {
 		if err != nil {
 			return LocationResult{}, err
 		}
-		if len(rules) > 0 {
-			s.ws.Publish(websocket.NewAlertEvent(violation.ID, eventType, input.Timestamp, vehicle, fence, location))
+		for _, rule := range rules {
+			event := models.AlertEvent{
+				AlertRuleID: &rule.ID,
+				ViolationID: &violation.ID,
+				VehicleID:   input.VehicleID,
+				GeofenceID:  fence.ID,
+				EventType:   eventType,
+				Latitude:    input.Latitude,
+				Longitude:   input.Longitude,
+				Timestamp:   input.Timestamp,
+			}
+			if err := s.repo.CreateAlertEvent(&event); err != nil {
+				return LocationResult{}, err
+			}
+			s.publisher.Publish(websocket.NewAlertEvent(event.ID, eventType, input.Timestamp, vehicle, fence, location))
 		}
 	}
 

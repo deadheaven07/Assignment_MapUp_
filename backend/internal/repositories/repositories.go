@@ -102,6 +102,10 @@ func (r *Repository) CreateViolation(violation *models.Violation) error {
 	return r.db.Create(violation).Error
 }
 
+func (r *Repository) CreateAlertEvent(event *models.AlertEvent) error {
+	return r.db.Create(event).Error
+}
+
 type ViolationFilter struct {
 	VehicleID  *uint
 	GeofenceID *uint

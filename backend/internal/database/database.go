@@ -49,6 +49,7 @@ func Connect() (*gorm.DB, error) {
 		&models.AlertRule{},
 		&models.Violation{},
 		&models.VehicleGeofenceState{},
+		&models.AlertEvent{},
 	); err != nil {
 		return nil, fmt.Errorf("migrate database: %w", err)
 	}
